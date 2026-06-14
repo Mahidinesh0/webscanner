@@ -147,6 +147,15 @@ def api_generate_report(target_id):
     
     filepath = generate_report(target_url=target["url"], vulnerabilities=[dict(v) for v in get_vulnerabilities(target_id)], waf_stats={"total": 0, "by_type": [], "top_ips": []}, report_type="technical")
     return send_file(filepath, as_attachment=True, download_name=f"BENSEC-Audit-Report-{domain}.pdf", mimetype="application/pdf")
-
+    
+@app.route("/", methods=["GET"])
+def api_root_check():
+    return jsonify({
+        "status": "online",
+        "engine": "BENSEC Security Daemon",
+        "message": "Cloud API gateway initialized successfully."
+    }), 200
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # Render assigns ports dynamically via the PORT environment variable
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
