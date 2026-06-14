@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bolt, Play, FileText, Trash2 } from 'lucide-react';
 
-const API_BASE = 'https://web-application-scanner-pfz7.onrender.com';
+const API_BASE = 'https://webscanner-tm3m.onrender.com';
 
 export default function App() {
   const [targets, setTargets] = useState([]);
