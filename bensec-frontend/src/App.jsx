@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bolt, Play, FileText, Trash2 } from 'lucide-react';
 
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://127.0.0.1:5000'
-  : `${window.location.protocol}//${window.location.hostname}:5000`;
+const API_BASE = 'https://web-application-scanner-pfz7.onrender.com';
 
 export default function App() {
   const [targets, setTargets] = useState([]);
