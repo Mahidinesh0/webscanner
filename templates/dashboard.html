@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BENSEC // Web Application Security Scanner & WAF</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-deep: #0a0b10;
+            --bg-card: #11131c;
+            --bg-input: #161925;
+            --text-main: #f1f3f9;
+            --text-muted: #7e8494;
+            --accent-primary: #7c3aed;
+            --accent-hover: #6d28d9;
+            --status-scan: #f59e0b;
+            --severity-high: #ef4444;
+            --severity-med: #f59e0b;
+            --severity-low: #3b82f6;
+            --border-color: #1e2235;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .logo-frame {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-frame i {
+            color: var(--status-scan);
+            font-size: 1.8rem;
+        }
+
+        .logo-frame h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .tagline {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Metrics Deck */
+        .metrics-deck {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .metric-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .metric-card h3 {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.75rem;
+        }
+
+        .metric-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+
+        .metric-value.total-vulns { color: var(--status-scan); }
+        .metric-value.blocked-reqs { color: var(--severity-high); }
+
+        .severity-breakdown {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            margin-top: 0.25rem;
+        }
+
+        .sev-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+        }
+
+        .badge-high { color: var(--severity-high); font-weight: bold; }
+        .badge-med { color: var(--severity-med); font-weight: bold; }
+        .badge-low { color: var(--severity-low); font-weight: bold; }
+
+        /* Control Panel Form */
+        .control-panel {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .panel-title {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .input-group input {
+            flex: 1;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            color: var(--text-main);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input:focus {
+            border-color: var(--accent-primary);
+        }
+
+        .btn {
+            background-color: var(--accent-primary);
+            color: var(--text-main);
+            border: none;
+            border-radius: 6px;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover { background-color: var(--accent-hover); }
+        .btn:disabled { background-color: var(--border-color); cursor: not-allowed; color: var(--text-muted); }
+
+        .btn-scan { background-color: #f59e0b; color: #0a0b10; }
+        .btn-scan:hover { background-color: #d97706; }
+        .btn-report { background-color: #10b981; }
+        .btn-report:hover { background-color: #059669; }
+        .btn-delete { background-color: #dc2626; }
+        .btn-delete:hover { background-color: #b91c1c; }
+
+        /* Tables Data Deck */
+        .data-deck-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 1.2rem;
+            color: var(--text-main);
+        }
+
+        .table-container {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 2.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+        }
+
+        th {
+            background-color: rgba(254, 254, 254, 0.02);
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            background-color: var(--border-color);
+        }
+
+        .status-badge.scanning { background-color: rgba(245, 158, 11, 0.15); color: var(--status-scan); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .status-badge.completed { background-color: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-badge.pending { background-color: rgba(126, 132, 148, 0.15); color: var(--text-muted); }
+        .status-badge.error { background-color: rgba(220, 38, 38, 0.15); color: #ef4444; }
+
+        .empty-row-notice {
+            padding: 3rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .action-flex {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-ico {
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-main);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-frame">
+            <i class="fa-solid fa-bolt"></i>
+            <h1>BENSEC</h1>
+        </div>
+        <div class="tagline">Bensec Security Platform</div>
+    </header>
+
+    <div class="metrics-deck">
+        <div class="metric-card">
+            <h3>Total Targets</h3>
+            <div class="metric-value">{{ targets|length }}</div>
+        </div>
+        <div class="metric-card">
+            <h3>WAF Blocked</h3>
+            <div class="metric-value blocked-reqs">{{ waf_stats['total'] }}</div>
+        </div>
+        <div class="metric-card">
+            <h3>Vulnerabilities</h3>
+            <div class="metric-value total-vulns">{{ vuln_stats['total'] }}</div>
+        </div>
+        <div class="metric-card">
+            <h3>Severity Breakdown</h3>
+            <div class="severity-breakdown">
+                <div class="sev-row"><span class="badge-high">High</span> <span>{{ vuln_stats['high'] }}</span></div>
+                <div class="sev-row"><span class="badge-med">Medium</span> <span>{{ vuln_stats['medium'] }}</span></div>
+                <div class="sev-row"><span class="badge-low">Low</span> <span>{{ vuln_stats['low'] }}</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="control-panel">
+        <div class="panel-title">Add New Scanner Target</div>
+        <form id="targetForm" class="input-group">
+            <input type="url" id="targetUrl" placeholder="https://example-target.com" required>
+            <button type="submit" class="btn">Add Target</button>
+        </form>
+    </div>
+
+    <div class="data-deck-title">Targets Auditing Control Deck</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 5%">#</th>
+                    <th style="width: 35%">Target URL</th>
+                    <th style="width: 15%">Scan Status</th>
+                    <th style="width: 25%">Live Execution Monitor</th>
+                    <th style="width: 5%">Risk Matrix</th>
+                    <th style="width: 15%">Action Panel</th>
+                </tr>
+            </thead>
+            <tbody id="targetTableBody">
+                {% if targets %}
+                    {% for t in targets %}
+                    <tr id="target-row-{{ t['id'] }}">
+                        <td>{{ loop.index }}</td>
+                        <td><strong>{{ t['url'] }}</strong></td>
+                        <td><span class="status-badge {{ t['scan_status'] }}" id="status-badge-{{ t['id'] }}">{{ t['scan_status'] }}</span></td>
+                        <td id="progress-monitor-{{ t['id'] }}" style="font-size: 0.9rem; color: var(--text-muted);">—</td>
+                        <td id="risk-score-{{ t['id'] }}" style="font-weight: 700;">{{ t['risk_score'] }}</td>
+                        <td>
+                            <div class="action-flex">
+                                <button class="btn-ico btn-scan" title="Launch Scanner Pipeline" onclick="startScan({{ t['id'] }})" id="btn-scan-{{ t['id'] }}" {% if t['scan_status'] == 'scanning' %}disabled{% endif %}><i class="fa-solid fa-play"></i></button>
+                                <button class="btn-ico btn-report" title="Download PDF Summary Report" onclick="downloadReport({{ t['id'] }}, '{{ t['url'] }}')" id="btn-report-{{ t['id'] }}" {% if t['scan_status'] != 'completed' %}disabled{% endif %}><i class="fa-solid fa-file-pdf"></i></button>
+                                <button class="btn-ico btn-delete" title="Purge Assets History" onclick="deleteTarget({{ t['id'] }})"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="empty-row-notice">No diagnostic targets identified. Add a URL above to initialize audit modules.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // ── LINKED STRAIGHT TO LOCALHOST ─────────────────────────────────────
+        const API_BASE = "http://192.168.1.3:80";
+
+        // Handle Target Configuration Addition submissions
+        document.getElementById("targetForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const urlInput = document.getElementById("targetUrl");
+            const url = urlInput.value.trim();
+
+            try {
+                const response = await fetch(`${API_BASE}/api/targets`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ url: url })
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const err = await response.json();
+                    alert(`Error adding target configuration mapping: ${err.error}`);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Connection pipeline verification failed connecting to local API server backend.");
+            }
+        });
+
+        // Trigger Execution Scanner Pipeline Task Threading
+        async function startScan(targetId) {
+            const scanBtn = document.getElementById(`btn-scan-${targetId}`);
+            if (scanBtn) scanBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/targets/${targetId}/scan`, { method: "POST" });
+                if (response.ok) {
+                    const badge = document.getElementById(`status-badge-${targetId}`);
+                    if (badge) {
+                        badge.innerText = "scanning";
+                        badge.className = "status-badge scanning";
+                    }
+                    listenToProgress(targetId);
+                } else {
+                    if (scanBtn) scanBtn.disabled = false;
+                    alert("Failed to initialize active scanner background thread execution pipeline loops.");
+                }
+            } catch (err) {
+                if (scanBtn) scanBtn.disabled = false;
+                console.error(err);
+            }
+        }
+
+        // Handle Real-Time Server-Sent Events (SSE) Live Streams
+        function listenToProgress(targetId) {
+            const monitorCell = document.getElementById(`progress-monitor-${targetId}`);
+            const badge = document.getElementById(`status-badge-${targetId}`);
+            const reportBtn = document.getElementById(`btn-report-${targetId}`);
+
+            const eventSource = new EventSource(`${API_BASE}/api/targets/${targetId}/progress`);
+
+            eventSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                
+                if (data.step && monitorCell) {
+                    if (data.step === "—") {
+                        monitorCell.innerHTML = "—";
+                    } else {
+                        monitorCell.innerHTML = `<span style="color:#f59e0b;">${data.pct}%</span> — ${data.step} <span style="background:rgba(239,68,68,0.15);padding:2px 6px;border-radius:4px;color:#ef4444;font-size:0.75rem;margin-left:4px;font-weight:bold;">${data.findings} vulns</span>`;
+                    }
+                }
+
+                if (data.done) {
+                    eventSource.close();
+                    if (badge) {
+                        badge.innerText = "completed";
+                        badge.className = "status-badge completed";
+                    }
+                    if (reportBtn) reportBtn.disabled = false;
+                    
+                    setTimeout(() => { window.location.reload(); }, 1500);
+                }
+
+                if (data.error) {
+                    eventSource.close();
+                    if (badge) {
+                        badge.innerText = "error";
+                        badge.className = "status-badge error";
+                    }
+                }
+            };
+
+            eventSource.onerror = function() {
+                eventSource.close();
+            };
+        }
+
+        // Download Report Assets PDFs named dynamically after target domain names
+        async function downloadReport(targetId, targetUrl) {
+            try {
+                const response = await fetch(`${API_BASE}/api/report/${targetId}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ type: "technical" })
+                });
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    
+                    // Extract clean host name for naming fallback array rules
+                    let domainName = targetUrl.replace('https://','').replace('http://','').split('/')[0].replace(':','_');
+                    a.download = `BENSEC-Audit-Report-${domainName}.pdf`;
+                    
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                } else {
+                    alert("Error compiling PDF structural compilation summary payload arrays.");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Connection loss dropped stream asset report compilation loops.");
+            }
+        }
+
+        // Delete Targets History
+        async function deleteTarget(targetId) {
+            if (!confirm("Are you sure you want to permanently delete this target and clear its full vulnerability history statistics?")) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/targets/${targetId}`, { method: "DELETE" });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert("Failed to securely drop monitored assets from tracking memory matrices.");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Database connection drop prevented asset synchronization commands.");
+            }
+        }
+
+        // Auto-Hook active streams upon template DOM lifecycle generation hooks
+        document.addEventListener("DOMContentLoaded", () => {
+            {% for t in targets %}
+                {% if t['scan_status'] == 'scanning' %}
+                    listenToProgress({{ t['id'] }});
+                {% endif %}
+            {% endfor %}
+        });
+    </script>
+</body>
+</html>

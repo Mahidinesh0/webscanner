@@ -1,0 +1,48 @@
+:root {
+  --bg-deep: #0a0b10;
+  --bg-card: #11131c;
+  --bg-input: #161925;
+  --text-main: #f1f3f9;
+  --text-muted: #7e8494;
+  --accent-primary: #7c3aed;
+  --accent-hover: #6d28d9;
+  --status-scan: #f59e0b;
+  --severity-high: #ef4444;
+  --severity-med: #f59e0b;
+  --severity-low: #3b82f6;
+  --border-color: #1e2235;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: var(--bg-deep);
+  color: var(--text-main);
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+/* Custom styles for badges */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.btn:hover {
+  background-color: var(--accent-hover) !important;
+}
+
+.btn:disabled {
+  background-color: var(--border-color) !important;
+  color: var(--text-muted) !important;
+  cursor: not-allowed !important;
+}
